@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Football Review Tool</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="football-tagging-tool">
+        <div class="main-container">
+            <!-- Top Content Wrapper for Main Video and Info Panel -->
+            <div class="top-content-wrapper">
+                <!-- Main Video Player -->
+                <section class="area main-video-player-wrapper no-padding">
+                    <div id="matchVideoPlayer"></div>
+                    <div id="eventOverlay" class="event-overlay"></div>
+                    <div id="videoSeekShield" class="video-seek-shield"></div>
+                </section>
+
+                <!-- Player 360 Video Panel -->
+                <section class="area info-panel">
+                    <div class="player-360-video-display">
+                        <div class="player-360-header-controls">
+                            <h3>Player 360° View</h3>
+                            <div class="player-360-view-mode-selection">
+                                <label><input type="radio" name="player360ViewMode" value="video" checked> Video</label>
+                                <label><input type="radio" name="player360ViewMode" value="thumbnail"> Thumbnail</label>
+                            </div>
+                        </div>
+                        <div id="player360ManualIdDisplay" class="player-360-manual-id-info"></div>
+                        <div id="player360VideoPlayerContainer">
+                            <div class="video-placeholder-text">Player 360° view will appear here.</div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Combined Filtering and Moments Section -->
+            <section class="area filtering-and-moments-section">
+                <!-- Left Panel: Filters -->
+                <div class="filter-panel">
+                    <h3>Game Moments Filter</h3>
+                    <div class="rule-builder-container">
+                        <div class="filter-controls">
+                            <div class="filter-group">
+                                <label for="playerSelect">Player:</label>
+                                <select id="playerSelect">
+                                    <option value="">Select Player</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="actionSelect">Action:</label>
+                                <select id="actionSelect" disabled>
+                                    <option value="">Select Player First</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Moments Table -->
+                <div class="moments-panel">
+                    <div class="moments-panel-header">
+                        <h3>Game Moments</h3>
+                        <button id="playAllButton" class="btn">Play All</button>
+                    </div>
+                    <div id="momentsList" class="moments-list-container">
+                        <!-- Moments table will be dynamically injected here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Match & Video Setup -->
+            <section class="area meta-data">
+                <h3>Match & Video Setup</h3>
+                <div class="input-layout-container">
+                    <div class="input-container video-control">
+                        <label for="videoUrlInput">Main Video URL:</label>
+                        <input type="text" id="videoUrlInput" placeholder="Enter video URL">
+                        <button id="updateVideoButton">Update Video</button>
+                    </div>
+                    <div class="input-container">
+                        <label for="gameFileInput">Game Log</label>
+                        <input type="file" id="gameFileInput" accept=".txt" style="display: none;">
+                        <button id="uploadGameFileButton" class="btn">Upload Game Log</button>
+                        <span id="gameLogUploadStatus" class="upload-status"></span>
+                    </div>
+                    <div class="input-container">
+                        <label for="gameInfoZipInput">Game Info</label>
+                        <input type="file" id="gameInfoZipInput" accept=".zip" style="display: none;">
+                        <button id="uploadGameInfoButton" class="btn">Upload Game Info</button>
+                        <span id="zipUploadStatus" class="upload-status"></span>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
