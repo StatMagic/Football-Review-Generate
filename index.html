@@ -73,6 +73,7 @@
                                 <option value="2">2x</option>
                             </select>
                         </div>
+                        <button id="insertMomentButton" class="btn">Insert Moment</button>
                     </div>
                     <div id="momentsList" class="moments-list-container">
                         <!-- Moments table will be dynamically injected here -->
@@ -93,6 +94,8 @@
                         <label for="gameFileInput">Game Log</label>
                         <input type="file" id="gameFileInput" accept=".txt" style="display: none;">
                         <button id="uploadGameFileButton" class="btn">Upload Game Log</button>
+                        <button id="viewGameLogButton" class="btn" style="display: none;">View Game Log</button>
+                        <button id="downloadGameLogButton" class="btn" style="display: none;">Download Log</button>
                         <span id="gameLogUploadStatus" class="upload-status"></span>
                     </div>
                     <div class="input-container">
@@ -103,6 +106,140 @@
                     </div>
                 </div>
             </section>
+        </div>
+    </div>
+
+    <!-- Insert Moment Modal -->
+    <div id="insertMomentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Insert New Moment</h2>
+                <span id="closeInsertModal" class="close-button">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="edit-form-container">
+                    <div class="form-group">
+                        <label for="insertPlayerSelect">Player:</label>
+                        <select id="insertPlayerSelect"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="insertActionSelect">Action:</label>
+                        <select id="insertActionSelect"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Inpoint:</label>
+                        <div class="timestamp-control">
+                            <button class="time-adjust-btn" data-target="insertInpoint" data-amount="-1">-1s</button>
+                            <input type="text" id="insertInpoint" class="timestamp-input" placeholder="00:00:00">
+                            <button class="time-adjust-btn" data-target="insertInpoint" data-amount="1">+1s</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Outpoint:</label>
+                        <div class="timestamp-control">
+                            <button class="time-adjust-btn" data-target="insertOutpoint" data-amount="-1">-1s</button>
+                            <input type="text" id="insertOutpoint" class="timestamp-input" placeholder="00:00:00">
+                            <button class="time-adjust-btn" data-target="insertOutpoint" data-amount="1">+1s</button>
+                        </div>
+                    </div>
+                    <div class="form-group-checkbox">
+                        <label><input type="checkbox" id="insertIsMatchHighlight"> In Moments File (Match Highlight)</label>
+                    </div>
+                    <div class="form-group-checkbox">
+                        <label><input type="checkbox" id="insertIsPlayerHighlight"> Is Player Highlight</label>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="saveNewMomentButton" class="btn">Save New Moment</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Moment Modal -->
+    <div id="editMomentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Moment</h2>
+                <span id="closeEditModal" class="close-button">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="edit-form-container">
+                    <div class="form-group">
+                        <label for="editPlayerSelect">Player:</label>
+                        <select id="editPlayerSelect"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editActionSelect">Action:</label>
+                        <select id="editActionSelect"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Inpoint:</label>
+                        <div class="timestamp-control">
+                            <button class="time-adjust-btn" data-target="inpoint" data-amount="-1">-1s</button>
+                            <input type="text" id="editInpoint" class="timestamp-input">
+                            <button class="time-adjust-btn" data-target="inpoint" data-amount="1">+1s</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Outpoint:</label>
+                        <div class="timestamp-control">
+                            <button class="time-adjust-btn" data-target="outpoint" data-amount="-1">-1s</button>
+                            <input type="text" id="editOutpoint" class="timestamp-input">
+                            <button class="time-adjust-btn" data-target="outpoint" data-amount="1">+1s</button>
+                        </div>
+                    </div>
+                    <div class="form-group-checkbox">
+                        <label><input type="checkbox" id="editIsMatchHighlight"> In Moments File (Match Highlight)</label>
+                    </div>
+                    <div class="form-group-checkbox">
+                        <label><input type="checkbox" id="editIsPlayerHighlight"> Is Player Highlight</label>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="saveMomentButton" class="btn">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Moment Modal -->
+    <div id="deleteMomentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Delete Moment</h2>
+                <span id="closeDeleteModal" class="close-button">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this moment?</p>
+                <div id="deleteMomentDetails" class="moment-details-readonly">
+                    <!-- Moment details will be injected here -->
+                </div>
+                <div class="modal-footer">
+                    <button id="cancelDeleteButton" class="btn btn-secondary">Cancel</button>
+                    <button id="confirmDeleteButton" class="btn btn-danger">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Log Modal -->
+    <div id="gameLogModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Game Log</h2>
+                <span id="closeModal" class="close-button">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="log-filters">
+                    <label><input type="checkbox" id="filterEdited" class="log-filter-checkbox"> Manually Edited</label>
+                    <label><input type="checkbox" id="filterInserted" class="log-filter-checkbox"> Manually Inserted</label>
+                    <label><input type="checkbox" id="filterDeleted" class="log-filter-checkbox"> Manually Deleted</label>
+                </div>
+                <div id="gameLogTableContainer" class="game-log-table-container">
+                    <!-- Game log table will be dynamically injected here -->
+                </div>
+            </div>
         </div>
     </div>
 

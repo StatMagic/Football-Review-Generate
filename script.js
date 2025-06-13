@@ -8,13 +8,53 @@ let playerSelect;
 let actionSelect;
 let momentsList;
 let selectionSummary;
+let viewGameLogButton;
+let gameLogModal;
+let closeModal;
+let gameLogTableContainer;
+let logFilterCheckboxes;
+let downloadGameLogButton;
+
+// Edit Modal Elements
+let editMomentModal;
+let closeEditModal;
+let editPlayerSelect;
+let editActionSelect;
+let editInpoint;
+let editOutpoint;
+let editIsMatchHighlight;
+let editIsPlayerHighlight;
+let saveMomentButton;
+let timeAdjustButtons;
+
+// Insert Modal Elements
+let insertMomentModal;
+let closeInsertModal;
+let insertPlayerSelect;
+let insertActionSelect;
+let insertInpoint;
+let insertOutpoint;
+let insertIsMatchHighlight;
+let insertIsPlayerHighlight;
+let saveNewMomentButton;
+let insertMomentButton;
+
+// Delete Modal Elements
+let deleteMomentModal;
+let closeDeleteModal;
+let cancelDeleteButton;
+let confirmDeleteButton;
+let deleteMomentDetails;
 
 // Video player state
 let videoPlayer = null;
 let gameMoments = [];
 let uniquePlayers = new Set();
 let uniqueActions = new Set();
+let playerMap = new Map();
+let availableActions = [];
 let isPlayingAll = false; // New state variable to track "Play All" status.
+let currentEditMomentIndex = -1;
 
 // Game Info Upload and Processing
 let player360Data = null;
@@ -32,6 +72,43 @@ function initializeDOMElements() {
     actionSelect = document.getElementById('actionSelect');
     momentsList = document.getElementById('momentsList');
     selectionSummary = document.getElementById('selectionSummary');
+    viewGameLogButton = document.getElementById('viewGameLogButton');
+    gameLogModal = document.getElementById('gameLogModal');
+    closeModal = document.getElementById('closeModal');
+    gameLogTableContainer = document.getElementById('gameLogTableContainer');
+    logFilterCheckboxes = document.querySelectorAll('.log-filter-checkbox');
+    downloadGameLogButton = document.getElementById('downloadGameLogButton');
+
+    // Edit Modal Elements
+    editMomentModal = document.getElementById('editMomentModal');
+    closeEditModal = document.getElementById('closeEditModal');
+    editPlayerSelect = document.getElementById('editPlayerSelect');
+    editActionSelect = document.getElementById('editActionSelect');
+    editInpoint = document.getElementById('editInpoint');
+    editOutpoint = document.getElementById('editOutpoint');
+    editIsMatchHighlight = document.getElementById('editIsMatchHighlight');
+    editIsPlayerHighlight = document.getElementById('editIsPlayerHighlight');
+    saveMomentButton = document.getElementById('saveMomentButton');
+    timeAdjustButtons = document.querySelectorAll('.time-adjust-btn');
+
+    // Insert Modal Elements
+    insertMomentModal = document.getElementById('insertMomentModal');
+    closeInsertModal = document.getElementById('closeInsertModal');
+    insertPlayerSelect = document.getElementById('insertPlayerSelect');
+    insertActionSelect = document.getElementById('insertActionSelect');
+    insertInpoint = document.getElementById('insertInpoint');
+    insertOutpoint = document.getElementById('insertOutpoint');
+    insertIsMatchHighlight = document.getElementById('insertIsMatchHighlight');
+    insertIsPlayerHighlight = document.getElementById('insertIsPlayerHighlight');
+    saveNewMomentButton = document.getElementById('saveNewMomentButton');
+    insertMomentButton = document.getElementById('insertMomentButton');
+
+    // Delete Modal Elements
+    deleteMomentModal = document.getElementById('deleteMomentModal');
+    closeDeleteModal = document.getElementById('closeDeleteModal');
+    cancelDeleteButton = document.getElementById('cancelDeleteButton');
+    confirmDeleteButton = document.getElementById('confirmDeleteButton');
+    deleteMomentDetails = document.getElementById('deleteMomentDetails');
 
     // Add event listeners only if elements exist
     if (updateVideoButton) {
@@ -80,6 +157,97 @@ function initializeDOMElements() {
             updateMomentsList();
         });
     }
+
+    if (viewGameLogButton) {
+        viewGameLogButton.addEventListener('click', () => {
+            if (gameMoments.length > 0) {
+                populateGameLogTable();
+                gameLogModal.style.display = 'block';
+            } else {
+                alert('Please upload a game log first.');
+            }
+        });
+    }
+
+    if (closeModal) {
+        closeModal.addEventListener('click', () => {
+            gameLogModal.style.display = 'none';
+        });
+    }
+
+    if (logFilterCheckboxes) {
+        logFilterCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', populateGameLogTable);
+        });
+    }
+
+    if (downloadGameLogButton) {
+        downloadGameLogButton.addEventListener('click', downloadGameLog);
+    }
+
+    if(closeEditModal) {
+        closeEditModal.addEventListener('click', () => {
+            editMomentModal.style.display = 'none';
+        });
+    }
+
+    if(saveMomentButton) {
+        saveMomentButton.addEventListener('click', saveMomentChanges);
+    }
+
+    if(timeAdjustButtons) {
+        timeAdjustButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const targetId = e.target.dataset.target;
+                const amount = parseInt(e.target.dataset.amount, 10);
+                const input = document.getElementById(targetId.startsWith('edit') ?
+                    (targetId.endsWith('Inpoint') ? 'editInpoint' : 'editOutpoint') :
+                    (targetId.endsWith('Inpoint') ? 'insertInpoint' : 'insertOutpoint'));
+                
+                if (!input) return;
+
+                try {
+                    const currentSeconds = convertTimestampToSeconds(input.value);
+                    const newSeconds = Math.max(0, currentSeconds + amount);
+                    input.value = convertSecondsToTimestamp(newSeconds);
+                } catch (error) {
+                    // If input is empty, start from 0
+                    if(input.value === ''){
+                        input.value = convertSecondsToTimestamp(Math.max(0, amount));
+                    } else {
+                        console.error("Invalid timestamp format for adjustment:", input.value);
+                    }
+                }
+            });
+        });
+    }
+
+    if (insertMomentButton) {
+        insertMomentButton.addEventListener('click', openInsertModal);
+    }
+    if (closeInsertModal) {
+        closeInsertModal.addEventListener('click', () => insertMomentModal.style.display = 'none');
+    }
+    if (saveNewMomentButton) {
+        saveNewMomentButton.addEventListener('click', saveNewMoment);
+    }
+
+    if(closeDeleteModal) {
+        closeDeleteModal.addEventListener('click', () => deleteMomentModal.style.display = 'none');
+    }
+    if(cancelDeleteButton) {
+        cancelDeleteButton.addEventListener('click', () => deleteMomentModal.style.display = 'none');
+    }
+    if(confirmDeleteButton) {
+        confirmDeleteButton.addEventListener('click', confirmDelete);
+    }
+
+    // Close modal if user clicks outside of it
+    window.addEventListener('click', (event) => {
+        if (event.target === gameLogModal) {
+            gameLogModal.style.display = 'none';
+        }
+    });
 }
 
 // Initialize video player
@@ -173,6 +341,9 @@ async function processGameFile(file) {
         updatePlayerSelect();
         updateActionSelect(null); // Reset and disable action select
         updateMomentsList();
+        // Show the "View Game Log" button
+        if(viewGameLogButton) viewGameLogButton.style.display = 'inline-block';
+        if(downloadGameLogButton) downloadGameLogButton.style.display = 'inline-block';
     } catch (error) {
         console.error('Error processing game file:', error);
         alert('Error processing game file. Please make sure it\'s a valid text file.');
@@ -189,6 +360,7 @@ function parseGameFile(text) {
     gameMoments = [];
     uniquePlayers.clear();
     uniqueActions.clear();
+    playerMap.clear();
 
     // Skip header line
     for (let i = 1; i < lines.length; i++) {
@@ -200,6 +372,9 @@ function parseGameFile(text) {
 
         const [id, name, jersey, manual, event, inpoint, outpoint, inMomentsFile, isPlayerHighlight] = parts;
         if (id && event) {
+            if (!playerMap.has(id)) {
+                playerMap.set(id, { name, jersey, manual });
+            }
             const moment = {
                 id,
                 name,
@@ -209,7 +384,10 @@ function parseGameFile(text) {
                 inpoint,
                 outpoint,
                 inMomentsFile: inMomentsFile === 'True',
-                isPlayerHighlight: isPlayerHighlight === 'True'
+                isPlayerHighlight: isPlayerHighlight === 'True',
+                manuallyEdited: parts[9] === 'True' || false,
+                manuallyInserted: parts[10] === 'True' || false,
+                manuallyDeleted: parts[11] === 'True' || false
             };
             gameMoments.push(moment);
             uniquePlayers.add(id);
@@ -234,8 +412,18 @@ function parseGameFile(text) {
 }
 
 function convertTimestampToSeconds(timestamp) {
+    if (!timestamp || !timestamp.includes(':')) {
+        throw new Error('Invalid timestamp format');
+    }
     const [hours, minutes, seconds] = timestamp.split(':').map(Number);
     return hours * 3600 + minutes * 60 + seconds;
+}
+
+function convertSecondsToTimestamp(totalSeconds) {
+    const hours = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
+    const minutes = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
+    const seconds = Math.floor(totalSeconds % 60).toString().padStart(2, '0');
+    return `${hours}:${minutes}:${seconds}`;
 }
 
 function updatePlayerSelect() {
@@ -397,12 +585,11 @@ function updateSelectionSummary() {
 function updateMomentsList() {
     if (!momentsList) return;
 
-    const selectedPlayer = playerSelect ? playerSelect.value : null;
-    const selectedAction = actionSelect ? actionSelect.value : null;
-    
-    const playAllButton = document.getElementById('playAllButton');
+    const selectedPlayer = playerSelect.value;
+    const selectedAction = actionSelect.value;
 
-    let filteredMoments = gameMoments;
+    // Start by filtering out any moments that have been soft-deleted.
+    let filteredMoments = gameMoments.filter(moment => !moment.manuallyDeleted);
 
     // --- MATCH MODE ---
     if (selectedPlayer === '__MATCH__') {
@@ -410,25 +597,29 @@ function updateMomentsList() {
             if (selectedAction === 'Match Highlights') {
                 filteredMoments = filteredMoments.filter(moment => moment.inMomentsFile);
             } else {
+                // Filter by the specific event, as it's not a special action
                 filteredMoments = filteredMoments.filter(moment => moment.event === selectedAction);
             }
         }
-    } else {
+        // If no action is selected in Match Mode, all non-deleted moments are shown.
+    } else if (selectedPlayer) {
         // --- PLAYER MODE ---
-        if (!selectedPlayer) {
-            momentsList.innerHTML = '<div class="moment-item">Please select a player to see their moments.</div>';
-            return;
-        }
-        filteredMoments = gameMoments.filter(moment => moment.id === selectedPlayer);
+        filteredMoments = filteredMoments.filter(moment => moment.id === selectedPlayer);
         if (selectedAction) {
             if (selectedAction === 'Highlight Reel Moments') {
                 filteredMoments = filteredMoments.filter(moment => moment.isPlayerHighlight);
             } else {
+                // Filter by the specific event for that player
                 filteredMoments = filteredMoments.filter(moment => moment.event === selectedAction);
             }
         }
+    } else {
+        // If no player is selected (and not in Match Mode), show no moments.
+        filteredMoments = [];
     }
-    
+
+    const playAllButton = document.getElementById('playAllButton');
+
     // Wire up the "Play All" button to the filtered list of moments.
     if (playAllButton) {
         playAllButton.onclick = () => playAllMoments(filteredMoments);
@@ -444,55 +635,92 @@ function updateMomentsList() {
     // Create the table structure
     const table = document.createElement('table');
     table.className = 'moments-table';
-    
-    const thead = document.createElement('thead');
-    thead.innerHTML = `
-        <tr>
-            <th>Play</th>
-            <th>Player Highlight</th>
-            <th>Match Highlight</th>
-            <th>Inpoint</th>
-            <th>Outpoint</th>
-            <th>Event</th>
-            <th>Player Details</th>
-        </tr>
-    `;
-    table.appendChild(thead);
-    
+
+    // Create table header
+    const thead = table.createTHead();
+    const headerRow = thead.insertRow();
+    const headers = [
+        { text: 'Edit', className: 'control-header' },
+        { text: 'Delete', className: 'control-header' },
+        { text: 'Play', className: 'control-header' },
+        { text: 'Player Highlight', className: 'control-header' },
+        { text: 'Match Highlight', className: 'control-header' },
+        'Inpoint',
+        'Outpoint',
+        'Event',
+        'Details'
+    ];
+    headers.forEach(header => {
+        const th = document.createElement('th');
+        if (typeof header === 'object') {
+            th.textContent = header.text;
+            th.className = header.className;
+        } else {
+            th.textContent = header;
+        }
+        headerRow.appendChild(th);
+    });
+
+    // Create table body
     const tbody = document.createElement('tbody');
-    filteredMoments.forEach(moment => {
+    filteredMoments.forEach((moment) => {
         const tr = document.createElement('tr');
-        
+        const originalIndex = gameMoments.indexOf(moment);
+
+        // Edit Cell
+        const editCell = document.createElement('td');
+        const editIcon = document.createElement('span');
+        editIcon.className = 'edit-icon';
+        editIcon.innerHTML = '&#9998;'; // Pencil icon
+        editIcon.title = 'Edit Moment';
+        editIcon.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openEditModal(originalIndex);
+        });
+        editCell.appendChild(editIcon);
+
+        // Delete Cell
+        const deleteCell = document.createElement('td');
+        const deleteIcon = document.createElement('span');
+        deleteIcon.className = 'delete-icon';
+        deleteIcon.innerHTML = '&#128465;'; // Trash can icon
+        deleteIcon.title = 'Delete Moment';
+        deleteIcon.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openDeleteModal(originalIndex);
+        });
+        deleteCell.appendChild(deleteIcon);
+
         // Play Button Cell
         const playCell = document.createElement('td');
-        const playBtn = document.createElement('button');
-        playBtn.className = 'play-moment-btn';
-        playBtn.textContent = '▶';
-        playBtn.onclick = () => playMomentWithOverlay(moment);
-        playCell.appendChild(playBtn);
-        
+        const playButton = document.createElement('button');
+        playButton.className = 'play-moment-btn';
+        playButton.textContent = '▶';
+        playButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            playMomentWithOverlay(moment);
+        });
+        playCell.appendChild(playButton);
+
         // Player Highlight Checkbox
         const playerHighlightCell = document.createElement('td');
-        const playerHighlightCheck = document.createElement('input');
-        playerHighlightCheck.type = 'checkbox';
-        playerHighlightCheck.className = 'highlight-checkbox';
-        playerHighlightCheck.checked = moment.isPlayerHighlight;
-        playerHighlightCheck.onchange = () => toggleMomentProperty(moment, 'isPlayerHighlight');
-        playerHighlightCell.appendChild(playerHighlightCheck);
+        const isHighlightCheckbox = document.createElement('input');
+        isHighlightCheckbox.type = 'checkbox';
+        isHighlightCheckbox.checked = moment.isPlayerHighlight;
+        isHighlightCheckbox.addEventListener('change', () => toggleMomentProperty(moment, 'isPlayerHighlight'));
+        playerHighlightCell.appendChild(isHighlightCheckbox);
 
         // Match Highlight Checkbox
         const matchHighlightCell = document.createElement('td');
-        const matchHighlightCheck = document.createElement('input');
-        matchHighlightCheck.type = 'checkbox';
-        matchHighlightCheck.className = 'highlight-checkbox';
-        matchHighlightCheck.checked = moment.inMomentsFile;
-        matchHighlightCheck.onchange = () => toggleMomentProperty(moment, 'inMomentsFile');
-        matchHighlightCell.appendChild(matchHighlightCheck);
-        
-        // Other cells
+        const inMomentsCheckbox = document.createElement('input');
+        inMomentsCheckbox.type = 'checkbox';
+        inMomentsCheckbox.checked = moment.inMomentsFile;
+        inMomentsCheckbox.addEventListener('change', () => toggleMomentProperty(moment, 'inMomentsFile'));
+        matchHighlightCell.appendChild(inMomentsCheckbox);
+
         const inpointCell = document.createElement('td');
         inpointCell.textContent = moment.inpoint;
-        
+
         const outpointCell = document.createElement('td');
         outpointCell.textContent = moment.outpoint;
 
@@ -501,7 +729,9 @@ function updateMomentsList() {
 
         const detailsCell = document.createElement('td');
         detailsCell.textContent = `ID: ${moment.id} | Name: ${moment.name} | Manual: ${moment.manual} | Jersey: ${moment.jersey}`;
-        
+
+        tr.appendChild(editCell);
+        tr.appendChild(deleteCell);
         tr.appendChild(playCell);
         tr.appendChild(playerHighlightCell);
         tr.appendChild(matchHighlightCell);
@@ -509,11 +739,12 @@ function updateMomentsList() {
         tr.appendChild(outpointCell);
         tr.appendChild(eventCell);
         tr.appendChild(detailsCell);
-        
+
         tbody.appendChild(tr);
     });
-    
+
     table.appendChild(tbody);
+    momentsList.innerHTML = '';
     momentsList.appendChild(table);
 }
 
@@ -627,6 +858,7 @@ function setControlsEnabled(enabled) {
 document.addEventListener('DOMContentLoaded', () => {
     initializeDOMElements();
     initializeVideoPlayer();
+    fetchActions();
 });
 
 document.getElementById('uploadGameInfoButton').addEventListener('click', () => {
@@ -875,4 +1107,307 @@ function toggleMomentProperty(momentToToggle, propertyToToggle) {
     } else {
         console.error('Could not find the master moment to toggle.');
     }
+}
+
+function populateGameLogTable() {
+    if (!gameLogTableContainer) return;
+
+    const filterEdited = document.getElementById('filterEdited').checked;
+    const filterInserted = document.getElementById('filterInserted').checked;
+    const filterDeleted = document.getElementById('filterDeleted').checked;
+
+    let filteredMoments = gameMoments;
+
+    if (filterEdited || filterInserted || filterDeleted) {
+        filteredMoments = gameMoments.filter(m => {
+            const matchesEdited = filterEdited ? m.manuallyEdited : false;
+            const matchesInserted = filterInserted ? m.manuallyInserted : false;
+            const matchesDeleted = filterDeleted ? m.manuallyDeleted : false;
+            // If a filter is active, the moment must match it.
+            // A moment is included if it matches any of the active filters.
+            let shouldInclude = false;
+            if (filterEdited) shouldInclude = shouldInclude || matchesEdited;
+            if (filterInserted) shouldInclude = shouldInclude || matchesInserted;
+            if (filterDeleted) shouldInclude = shouldInclude || matchesDeleted;
+
+            // If no filters are active, this part of the logic doesn't apply,
+            // so we look at the outer logic. But if we are here, at least one is active.
+            return shouldInclude;
+        });
+
+        // If all filters are unchecked, show all moments.
+        if (!filterEdited && !filterInserted && !filterDeleted) {
+            filteredMoments = gameMoments;
+        }
+    }
+
+
+    const table = document.createElement('table');
+    table.className = 'game-log-table';
+    const thead = table.createTHead();
+    const headerRow = thead.insertRow();
+    const headers = ['ID', 'Name', 'Jersey', 'Event', 'Inpoint', 'Outpoint', 'Edited', 'Inserted', 'Deleted'];
+    headers.forEach(headerText => {
+        const th = document.createElement('th');
+        th.textContent = headerText;
+        headerRow.appendChild(th);
+    });
+
+    const tbody = table.createTBody();
+    filteredMoments.forEach(moment => {
+        const row = tbody.insertRow();
+        row.insertCell().textContent = moment.id;
+        row.insertCell().textContent = moment.name;
+        row.insertCell().textContent = moment.jersey;
+        row.insertCell().textContent = moment.event;
+        row.insertCell().textContent = moment.inpoint;
+        row.insertCell().textContent = moment.outpoint;
+        row.insertCell().textContent = moment.manuallyEdited ? '✓' : '';
+        row.insertCell().textContent = moment.manuallyInserted ? '✓' : '';
+        row.insertCell().textContent = moment.manuallyDeleted ? '✓' : '';
+    });
+
+    gameLogTableContainer.innerHTML = '';
+    gameLogTableContainer.appendChild(table);
+}
+
+function openEditModal(momentIndex) {
+    currentEditMomentIndex = momentIndex;
+    const moment = gameMoments[momentIndex];
+
+    // Populate Player Select
+    editPlayerSelect.innerHTML = '';
+    playerMap.forEach((details, id) => {
+        const option = document.createElement('option');
+        option.value = id;
+        option.textContent = `ID: ${id} | Name: ${details.name} | Manual: ${details.manual} | Jersey: ${details.jersey}`;
+        if (id === moment.id) {
+            option.selected = true;
+        }
+        editPlayerSelect.appendChild(option);
+    });
+
+    // Populate Action Select
+    editActionSelect.innerHTML = '';
+    availableActions.forEach(action => {
+        const option = document.createElement('option');
+        option.value = action;
+        option.textContent = action;
+        if (action === moment.event) {
+            option.selected = true;
+        }
+        editActionSelect.appendChild(option);
+    });
+
+    // Populate Timestamps and Checkboxes
+    editInpoint.value = moment.inpoint;
+    editOutpoint.value = moment.outpoint;
+    editIsMatchHighlight.checked = moment.inMomentsFile;
+    editIsPlayerHighlight.checked = moment.isPlayerHighlight;
+
+    editMomentModal.style.display = 'block';
+}
+
+function saveMomentChanges() {
+    if (currentEditMomentIndex === -1) return;
+
+    // Timestamp validation
+    const inpointSeconds = convertTimestampToSeconds(editInpoint.value);
+    const outpointSeconds = convertTimestampToSeconds(editOutpoint.value);
+
+    if (outpointSeconds <= inpointSeconds) {
+        alert('The outpoint timestamp must be after the inpoint timestamp.');
+        return; // Stop the save
+    }
+
+    const moment = gameMoments[currentEditMomentIndex];
+    
+    // Store original values to check for material changes
+    const originalData = {
+        id: moment.id,
+        event: moment.event,
+        inpoint: moment.inpoint,
+        outpoint: moment.outpoint
+    };
+
+    const selectedPlayerId = editPlayerSelect.value;
+    const playerDetails = playerMap.get(selectedPlayerId);
+
+    // Update moment properties from the modal
+    moment.id = selectedPlayerId;
+    moment.name = playerDetails.name;
+    moment.jersey = playerDetails.jersey;
+    moment.manual = playerDetails.manual;
+    moment.event = editActionSelect.value;
+    moment.inpoint = editInpoint.value;
+    moment.outpoint = editOutpoint.value;
+    moment.inMomentsFile = editIsMatchHighlight.checked;
+    moment.isPlayerHighlight = editIsPlayerHighlight.checked;
+    
+    // Only mark as edited if core data fields have changed
+    if (moment.id !== originalData.id ||
+        moment.event !== originalData.event ||
+        moment.inpoint !== originalData.inpoint ||
+        moment.outpoint !== originalData.outpoint) {
+        moment.manuallyEdited = true;
+    }
+
+    // Sort all moments by inpoint time after any potential change
+    gameMoments.sort((a, b) => convertTimestampToSeconds(a.inpoint) - convertTimestampToSeconds(b.inpoint));
+
+    // Re-render lists
+    updateMomentsList();
+    populateGameLogTable();
+
+    // Close modal
+    editMomentModal.style.display = 'none';
+    currentEditMomentIndex = -1;
+    showUploadStatus('Moment saved!', 'success', 2000, 'gameLogUploadStatus');
+}
+
+function confirmDelete() {
+    if (currentEditMomentIndex === -1) return;
+
+    // Mark the moment as deleted
+    gameMoments[currentEditMomentIndex].manuallyDeleted = true;
+
+    // Refresh the UI
+    updateMomentsList();
+    populateGameLogTable(); // To show it in the log viewer if filtered
+
+    // Close the modal
+    deleteMomentModal.style.display = 'none';
+    currentEditMomentIndex = -1;
+    showUploadStatus('Moment deleted!', 'success', 2000, 'gameLogUploadStatus');
+}
+
+function downloadGameLog() {
+    const header = "id|name|jersey|manual|event|inpoint|outpoint|inMomentsFile|isPlayerHighlight|manuallyEdited|manuallyInserted|manuallyDeleted";
+    const rows = gameMoments
+        .filter(m => !m.manuallyDeleted) // Exclude deleted moments from download
+        .map(m => {
+        return `${m.id}|${m.name}|${m.jersey}|${m.manual}|${m.event}|${m.inpoint}|${m.outpoint}|${m.inMomentsFile}|${m.isPlayerHighlight}|${m.manuallyEdited}|${m.manuallyInserted}|${m.manuallyDeleted}`;
+    });
+
+    const fileContent = [header, ...rows].join('\n');
+    const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'game_log_updated.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function fetchActions() {
+    fetch('actions.txt')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.text();
+        })
+        .then(text => {
+            availableActions = text.split('\n').map(s => s.trim()).filter(Boolean);
+            console.log('Available actions loaded:', availableActions);
+        })
+        .catch(error => {
+            console.error('There has been a problem with your fetch operation:', error);
+            alert('Could not load actions.txt. Please make sure the file exists.');
+        });
+}
+
+function openDeleteModal(momentIndex) {
+    currentEditMomentIndex = momentIndex;
+    const moment = gameMoments[momentIndex];
+    const playerDetails = playerMap.get(moment.id) || {};
+
+    // Populate details
+    deleteMomentDetails.innerHTML = `
+        <p><strong>Player:</strong> ID: ${moment.id} | Name: ${playerDetails.name} | Manual: ${playerDetails.manual} | Jersey: ${playerDetails.jersey}</p>
+        <p><strong>Action:</strong> ${moment.event}</p>
+        <p><strong>Time:</strong> ${moment.inpoint} - ${moment.outpoint}</p>
+    `;
+
+    deleteMomentModal.style.display = 'block';
+}
+
+function openInsertModal() {
+    if (playerMap.size === 0) {
+        alert('Please upload a game log first to have players available.');
+        return;
+    }
+
+    // Populate Player Select
+    insertPlayerSelect.innerHTML = '<option value="">Select Player</option>';
+    playerMap.forEach((details, id) => {
+        const option = document.createElement('option');
+        option.value = id;
+        option.textContent = `ID: ${id} | Name: ${details.name} | Manual: ${details.manual} | Jersey: ${details.jersey}`;
+        insertPlayerSelect.appendChild(option);
+    });
+
+    // Populate Action Select
+    insertActionSelect.innerHTML = '';
+    availableActions.forEach(action => {
+        const option = document.createElement('option');
+        option.value = action;
+        option.textContent = action;
+        insertActionSelect.appendChild(option);
+    });
+
+    // Set timestamps based on video player, if available
+    const currentTime = videoPlayer ? videoPlayer.currentTime : 0;
+    insertInpoint.value = convertSecondsToTimestamp(currentTime);
+    insertOutpoint.value = convertSecondsToTimestamp(currentTime + 5); // Default 5s duration
+
+    // Reset checkboxes
+    insertIsMatchHighlight.checked = false;
+    insertIsPlayerHighlight.checked = false;
+
+    insertMomentModal.style.display = 'block';
+}
+
+function saveNewMoment() {
+    const inpointSeconds = convertTimestampToSeconds(insertInpoint.value);
+    const outpointSeconds = convertTimestampToSeconds(insertOutpoint.value);
+
+    if (outpointSeconds <= inpointSeconds) {
+        alert('The outpoint timestamp must be after the inpoint timestamp.');
+        return;
+    }
+
+    const selectedPlayerId = insertPlayerSelect.value;
+    if (!selectedPlayerId) {
+        alert('Please select a player.');
+        return;
+    }
+    const playerDetails = playerMap.get(selectedPlayerId);
+
+    const newMoment = {
+        id: selectedPlayerId,
+        name: playerDetails.name,
+        jersey: playerDetails.jersey,
+        manual: playerDetails.manual,
+        event: insertActionSelect.value,
+        inpoint: insertInpoint.value,
+        outpoint: insertOutpoint.value,
+        inMomentsFile: insertIsMatchHighlight.checked,
+        isPlayerHighlight: insertIsPlayerHighlight.checked,
+        manuallyEdited: false,
+        manuallyInserted: true,
+        manuallyDeleted: false,
+    };
+
+    gameMoments.push(newMoment);
+    gameMoments.sort((a, b) => convertTimestampToSeconds(a.inpoint) - convertTimestampToSeconds(b.inpoint));
+
+    updateMomentsList();
+    populateGameLogTable();
+
+    insertMomentModal.style.display = 'none';
+    showUploadStatus('New moment inserted!', 'success', 2000, 'gameLogUploadStatus');
 }

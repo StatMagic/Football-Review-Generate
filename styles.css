@@ -1354,3 +1354,185 @@ input:checked + .slider:before {
     z-index: 50; /* Above video, below event overlay */
     display: none; /* Hidden by default */
 }
+
+/* Modal styles */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+.modal-content {
+    background-color: #2c2c2c;
+    margin: 5% auto; /* 5% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Could be more or less, depending on screen size */
+    border-radius: 8px;
+    color: #f0f0f0;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #444;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: white;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.log-filters {
+    margin-bottom: 15px;
+}
+
+.log-filters label {
+    margin-right: 20px;
+}
+
+.game-log-table-container {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+table.game-log-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table.game-log-table th, table.game-log-table td {
+    border: 1px solid #444;
+    padding: 8px;
+    text-align: left;
+}
+
+table.game-log-table th {
+    background-color: #333;
+    position: sticky;
+    top: 0;
+}
+
+.edit-icon {
+    cursor: pointer;
+    font-size: 1.2em;
+    margin-left: 10px;
+}
+
+.delete-icon {
+    cursor: pointer;
+    font-size: 1.2em;
+    margin-left: 10px;
+}
+
+.edit-icon:hover {
+    color: #4CAF50;
+}
+
+.delete-icon:hover {
+    color: #f44336;
+}
+
+/* Edit Modal Specific Styles */
+.edit-form-container .form-group {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.edit-form-container .form-group label {
+    width: 120px;
+    margin-right: 10px;
+}
+
+.edit-form-container .form-group select,
+.edit-form-container .form-group .timestamp-input {
+    flex-grow: 1;
+    padding: 8px;
+    background-color: #333;
+    color: #f0f0f0;
+    border: 1px solid #555;
+    border-radius: 4px;
+}
+
+.timestamp-control {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.timestamp-input {
+    text-align: center;
+    margin: 0 5px;
+    width: 100px; /* Fixed width for timestamp */
+}
+
+.time-adjust-btn {
+    padding: 8px 12px;
+    background-color: #555;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.time-adjust-btn:hover {
+    background-color: #666;
+}
+
+.form-group-checkbox {
+    margin-bottom: 15px;
+    padding-left: 130px; /* Align with other form fields */
+}
+
+.modal-footer {
+    text-align: right;
+    margin-top: 20px;
+    border-top: 1px solid #444;
+    padding-top: 15px;
+}
+
+.btn {
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: none;
+    font-size: 1em;
+    background-color: #4CAF50;
+    color: white;
+}
+
+.btn-danger {
+    background-color: #f44336;
+}
+
+.btn-secondary {
+    background-color: #555;
+}
+
+.moment-details-readonly {
+    background-color: #333;
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 15px;
+    border: 1px solid #444;
+}

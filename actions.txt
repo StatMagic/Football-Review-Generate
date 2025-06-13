@@ -1,0 +1,107 @@
+Corner - Aerial Duel
+Corner - Assist
+Corner - Blocked Shot Taken
+Corner - Catch
+Corner - Clearance
+Corner - Complete Cross
+Corner - Complete Long Pass
+Corner - Complete Pass
+Corner - Complete Through Ball
+Corner - Goal
+Corner - Incomplete Cross
+Corner - Incomplete Long Pass
+Corner - Incomplete Pass
+Corner - Incomplete Through Ball
+Corner - Key Pass
+Corner - Off-Target Shot
+Corner - On-Target Shot
+Corner - Punch
+Corner - Save
+Corner - Successful Dribble
+Corner - Unsuccessful Dribble
+Corner - Woodwork
+Corner Conceded
+Foul Conceded
+Free kick - Aerial Duel
+Free kick - Assist
+Free kick - Blocked Shot Taken
+Free kick - Catch
+Free kick - Clearance
+Free kick - Complete Cross
+Free kick - Complete Long Pass
+Free kick - Complete Pass
+Free kick - Complete Through Ball
+Free kick - Goal
+Free kick - Incomplete Cross
+Free kick - Incomplete Long Pass
+Free kick - Incomplete Pass
+Free kick - Incomplete Through Ball
+Free kick - Key Pass
+Free kick - Off-Target Shot
+Free kick - On-Target Shot
+Free kick - Punch
+Free kick - Save
+Free kick - Successful Dribble
+Free kick - Unsuccessful Dribble
+Free kick - Woodwork
+Handball Conceded
+Miscontrol
+Negative MOI
+No Action
+Open Play Aerial Duel
+Open Play Assist
+Open Play Blocked Shot Defensive
+Open Play Blocked Shot Taken
+Open Play Catch
+Open Play Clearance
+Open Play Complete Cross
+Open Play Complete Long Pass
+Open Play Complete Pass
+Open Play Complete Through Ball
+Open Play Goal
+Open Play Incomplete Cross
+Open Play Incomplete Long Pass
+Open Play Incomplete Pass
+Open Play Incomplete Through Ball
+Open Play Interception - Same Team
+Open Play Key Pass
+Open Play Off-Target Shot
+Open Play On-Target Shot
+Open Play Punch
+Open Play Recovery
+Open Play Save
+Open Play Steal
+Open Play Successful Dribble
+Open Play Tackle - In Possession
+Open Play Tackle - OOB
+Open Play Tackle - Team Possession
+Open Play Tackle - Turnover
+Open Play Unsuccessful Dribble
+Open Play Woodwork
+Own Goal
+Penalty - Aerial Duel
+Penalty - Assist
+Penalty - Blocked Shot Taken
+Penalty - Catch
+Penalty - Clearance
+Penalty - Complete Cross
+Penalty - Complete Long Pass
+Penalty - Complete Pass
+Penalty - Complete Through Ball
+Penalty - Goal
+Penalty - Incomplete Cross
+Penalty - Incomplete Long Pass
+Penalty - Incomplete Pass
+Penalty - Incomplete Through Ball
+Penalty - Key Pass
+Penalty - Off-Target Shot
+Penalty - On-Target Shot
+Penalty - Punch
+Penalty - Save
+Penalty - Successful Dribble
+Penalty - Unsuccessful Dribble
+Penalty - Woodwork
+Penalty Conceded
+Positive MOI
+Recovery - Other
+Unknown Event
