@@ -97,6 +97,16 @@ function initializeVideoPlayer() {
 
     // Add keyboard shortcuts
     document.addEventListener('keydown', handleKeyPress);
+
+    // Set up the playback speed control now that the video player exists.
+    const playbackSpeedSelect = document.getElementById('playbackSpeed');
+    if (playbackSpeedSelect) {
+        playbackSpeedSelect.addEventListener('change', (event) => {
+            if (videoPlayer) {
+                videoPlayer.playbackRate = parseFloat(event.target.value);
+            }
+        });
+    }
 }
 
 // Handle keyboard shortcuts
@@ -231,7 +241,21 @@ function convertTimestampToSeconds(timestamp) {
 function updatePlayerSelect() {
     if (!playerSelect) return;
 
-    playerSelect.innerHTML = '<option value="">Select Player</option>';
+    playerSelect.innerHTML = '';
+    
+    // Add a default "Select Player" option
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Select Player';
+    playerSelect.appendChild(defaultOption);
+
+    // Add the 'Match' option at the top
+    const matchOption = document.createElement('option');
+    matchOption.value = '__MATCH__';
+    matchOption.textContent = 'Match (All Players)';
+    playerSelect.appendChild(matchOption);
+
+    // Add the rest of the players
     Array.from(uniquePlayers).sort().forEach(playerId => {
         const moment = gameMoments.find(m => m.id === playerId);
         const option = document.createElement('option');
@@ -244,10 +268,9 @@ function updatePlayerSelect() {
 function updateActionSelect(playerId) {
     if (!actionSelect) return;
 
-    actionSelect.innerHTML = ''; // Clear previous options
+    actionSelect.innerHTML = '';
 
     if (!playerId) {
-        // If no player is selected, disable and show placeholder text.
         actionSelect.disabled = true;
         const option = document.createElement('option');
         option.value = '';
@@ -257,27 +280,56 @@ function updateActionSelect(playerId) {
     }
 
     actionSelect.disabled = false;
-    
-    // Get all moments for the selected player
+
+    // --- MATCH MODE ---
+    if (playerId === '__MATCH__') {
+        const allActions = new Set(gameMoments.map(m => m.event));
+        
+        const allOption = document.createElement('option');
+        allOption.value = '';
+        allOption.textContent = 'All Actions';
+        actionSelect.appendChild(allOption);
+
+        // Add "Match Highlights" option if any exist.
+        const hasMatchHighlights = gameMoments.some(m => m.inMomentsFile);
+        if (hasMatchHighlights) {
+            const highlightOption = document.createElement('option');
+            highlightOption.value = 'Match Highlights';
+            highlightOption.textContent = 'Match Highlights';
+            actionSelect.appendChild(highlightOption);
+        }
+
+        if (hasMatchHighlights && allActions.size > 0) {
+            const separator = document.createElement('option');
+            separator.disabled = true;
+            separator.textContent = '──────────';
+            actionSelect.appendChild(separator);
+        }
+
+        [...allActions].sort().forEach(action => {
+            const option = document.createElement('option');
+            option.value = action;
+            option.textContent = action;
+            actionSelect.appendChild(option);
+        });
+        
+        // Default to "Match Highlights" if they exist.
+        if (hasMatchHighlights) {
+            actionSelect.value = 'Match Highlights';
+        }
+
+        return;
+    }
+
+    // --- PLAYER MODE ---
     const playerMoments = gameMoments.filter(moment => moment.id === playerId);
     
-    // --- Start of Debugging ---
-    console.log(`[Debug] Checking moments for player ID: ${playerId}`);
-    console.log(`[Debug] Found ${playerMoments.length} moments for this player.`, playerMoments);
-    const highlightValues = playerMoments.map(m => m.isPlayerHighlight);
-    console.log('[Debug] isPlayerHighlight values for these moments:', highlightValues);
-    // --- End of Debugging ---
-
-    // Add a default "All Actions" option for this player.
     const allOption = document.createElement('option');
     allOption.value = '';
     allOption.textContent = 'All Actions';
     actionSelect.appendChild(allOption);
     
-    // If this specific player has any highlight moments, add that option.
     const hasHighlights = playerMoments.some(moment => moment.isPlayerHighlight);
-    console.log('[Debug] Does this player have highlights?', hasHighlights);
-
     if (hasHighlights) {
         const highlightOption = document.createElement('option');
         highlightOption.value = 'Highlight Reel Moments';
@@ -285,15 +337,12 @@ function updateActionSelect(playerId) {
         actionSelect.appendChild(highlightOption);
     }
 
-    // Add this player's unique actions.
     const playerActions = new Set(playerMoments.map(moment => moment.event));
-    
-    // Add a separator for visual clarity if there are both highlights and other actions.
     if (hasHighlights && playerActions.size > 0) {
-         const separator = document.createElement('option');
-         separator.disabled = true;
-         separator.textContent = '──────────';
-         actionSelect.appendChild(separator);
+        const separator = document.createElement('option');
+        separator.disabled = true;
+        separator.textContent = '──────────';
+        actionSelect.appendChild(separator);
     }
 
     if (playerActions.size > 0) {
@@ -305,7 +354,6 @@ function updateActionSelect(playerId) {
         });
     }
 
-    // If the player has highlights, make that the default selection.
     if (hasHighlights) {
         actionSelect.value = 'Highlight Reel Moments';
     }
@@ -356,21 +404,28 @@ function updateMomentsList() {
 
     let filteredMoments = gameMoments;
 
-    // If no player is selected, the list should be empty.
-    if (!selectedPlayer) {
-        momentsList.innerHTML = '<div class="moment-item">Please select a player to see their moments.</div>';
-        return;
-    }
-    
-    // Start with only the selected player's moments.
-    filteredMoments = gameMoments.filter(moment => moment.id === selectedPlayer);
-
-    // Further filter by the selected action or highlight status for that player.
-    if (selectedAction) {
-        if (selectedAction === 'Highlight Reel Moments') {
-            filteredMoments = filteredMoments.filter(moment => moment.isPlayerHighlight);
-        } else {
-            filteredMoments = filteredMoments.filter(moment => moment.event === selectedAction);
+    // --- MATCH MODE ---
+    if (selectedPlayer === '__MATCH__') {
+        if (selectedAction) {
+            if (selectedAction === 'Match Highlights') {
+                filteredMoments = filteredMoments.filter(moment => moment.inMomentsFile);
+            } else {
+                filteredMoments = filteredMoments.filter(moment => moment.event === selectedAction);
+            }
+        }
+    } else {
+        // --- PLAYER MODE ---
+        if (!selectedPlayer) {
+            momentsList.innerHTML = '<div class="moment-item">Please select a player to see their moments.</div>';
+            return;
+        }
+        filteredMoments = gameMoments.filter(moment => moment.id === selectedPlayer);
+        if (selectedAction) {
+            if (selectedAction === 'Highlight Reel Moments') {
+                filteredMoments = filteredMoments.filter(moment => moment.isPlayerHighlight);
+            } else {
+                filteredMoments = filteredMoments.filter(moment => moment.event === selectedAction);
+            }
         }
     }
     
@@ -394,7 +449,8 @@ function updateMomentsList() {
     thead.innerHTML = `
         <tr>
             <th>Play</th>
-            <th>Highlight</th>
+            <th>Player Highlight</th>
+            <th>Match Highlight</th>
             <th>Inpoint</th>
             <th>Outpoint</th>
             <th>Event</th>
@@ -415,14 +471,23 @@ function updateMomentsList() {
         playBtn.onclick = () => playMomentWithOverlay(moment);
         playCell.appendChild(playBtn);
         
-        // Highlight Checkbox Cell
-        const highlightCell = document.createElement('td');
-        const highlightCheck = document.createElement('input');
-        highlightCheck.type = 'checkbox';
-        highlightCheck.className = 'highlight-checkbox';
-        highlightCheck.checked = moment.isPlayerHighlight;
-        highlightCheck.onchange = () => toggleHighlight(moment);
-        highlightCell.appendChild(highlightCheck);
+        // Player Highlight Checkbox
+        const playerHighlightCell = document.createElement('td');
+        const playerHighlightCheck = document.createElement('input');
+        playerHighlightCheck.type = 'checkbox';
+        playerHighlightCheck.className = 'highlight-checkbox';
+        playerHighlightCheck.checked = moment.isPlayerHighlight;
+        playerHighlightCheck.onchange = () => toggleMomentProperty(moment, 'isPlayerHighlight');
+        playerHighlightCell.appendChild(playerHighlightCheck);
+
+        // Match Highlight Checkbox
+        const matchHighlightCell = document.createElement('td');
+        const matchHighlightCheck = document.createElement('input');
+        matchHighlightCheck.type = 'checkbox';
+        matchHighlightCheck.className = 'highlight-checkbox';
+        matchHighlightCheck.checked = moment.inMomentsFile;
+        matchHighlightCheck.onchange = () => toggleMomentProperty(moment, 'inMomentsFile');
+        matchHighlightCell.appendChild(matchHighlightCheck);
         
         // Other cells
         const inpointCell = document.createElement('td');
@@ -438,7 +503,8 @@ function updateMomentsList() {
         detailsCell.textContent = `ID: ${moment.id} | Name: ${moment.name} | Manual: ${moment.manual} | Jersey: ${moment.jersey}`;
         
         tr.appendChild(playCell);
-        tr.appendChild(highlightCell);
+        tr.appendChild(playerHighlightCell);
+        tr.appendChild(matchHighlightCell);
         tr.appendChild(inpointCell);
         tr.appendChild(outpointCell);
         tr.appendChild(eventCell);
@@ -782,8 +848,8 @@ function showUploadStatus(message, type, duration = 3000, elementId = 'zipUpload
     }
 }
 
-// New function to toggle the highlight status of a moment.
-function toggleHighlight(momentToToggle) {
+// New, more generic function to toggle a boolean property of a moment.
+function toggleMomentProperty(momentToToggle, propertyToToggle) {
     // Find the moment in our main data source and update its state.
     const masterMoment = gameMoments.find(m => 
         m.id === momentToToggle.id &&
@@ -792,20 +858,18 @@ function toggleHighlight(momentToToggle) {
     );
 
     if (masterMoment) {
-        masterMoment.isPlayerHighlight = !masterMoment.isPlayerHighlight;
-        console.log(`Toggled highlight for ${masterMoment.name}'s ${masterMoment.event} at ${masterMoment.inpoint} to ${masterMoment.isPlayerHighlight}`);
+        masterMoment[propertyToToggle] = !masterMoment[propertyToToggle];
+        console.log(`Toggled ${propertyToToggle} for ${masterMoment.name}'s ${masterMoment.event} to ${masterMoment[propertyToToggle]}`);
         
         // After toggling, we must refresh the action dropdown for the current player
-        // as the "Highlight Reel Moments" option may need to appear or disappear.
+        // as a highlight option may need to appear or disappear.
         const selectedPlayer = playerSelect ? playerSelect.value : null;
         if (selectedPlayer) {
             const currentAction = actionSelect.value;
             updateActionSelect(selectedPlayer);
-            // Restore the user's action selection after refreshing the dropdown.
             actionSelect.value = currentAction;
         }
 
-        // --- FIX: Refresh the moments list to reflect the change immediately. ---
         updateMomentsList();
 
     } else {

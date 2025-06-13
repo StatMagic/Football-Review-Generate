@@ -1222,9 +1222,10 @@ input:checked + .slider:before {
 
 .moments-panel-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start; /* Aligns items to the left */
     align-items: center;
     margin-bottom: 10px;
+    gap: 15px; /* Adds space between header, button, and speed control */
 }
 
 .moments-panel-header h3 {
@@ -1233,6 +1234,24 @@ input:checked + .slider:before {
 
 .moments-panel-header #playAllButton {
     padding: 6px 14px;
+    font-size: 14px;
+}
+
+.playback-speed-control {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.playback-speed-control label {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.playback-speed-control select {
+    padding: 4px 6px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
     font-size: 14px;
 }
 
