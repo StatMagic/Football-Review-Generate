@@ -64,6 +64,15 @@
                     <div class="moments-panel-header">
                         <h3>Game Moments</h3>
                         <button id="playAllButton" class="btn">Play All</button>
+                        <div class="playback-speed-control">
+                            <label for="playbackSpeed">Speed:</label>
+                            <select id="playbackSpeed">
+                                <option value="0.5">0.5x</option>
+                                <option value="1" selected>1x</option>
+                                <option value="1.5">1.5x</option>
+                                <option value="2">2x</option>
+                            </select>
+                        </div>
                     </div>
                     <div id="momentsList" class="moments-list-container">
                         <!-- Moments table will be dynamically injected here -->
